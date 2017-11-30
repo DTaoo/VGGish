@@ -10,8 +10,6 @@ For more details, please visit the [slim version](https://github.com/tensorflow/
 
 * [Model](https://drive.google.com/open?id=16JrWEedwaZFVZYvn1woPKCuWx85Ghzkp) without the top fully connected layers
 
-* 
-
 ## Reference:
 
 * Gemmeke, J. et. al.,
