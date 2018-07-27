@@ -15,7 +15,7 @@ import linecache
 from keras.models import Model
 from keras.layers import GlobalAveragePooling2D
 from vggish import VGGish
-import preprocess_sound
+from preprocess_sound import preprocess_sound
 
 
 def loading_data(files, sound_extractor):
