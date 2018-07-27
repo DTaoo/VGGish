@@ -19,12 +19,11 @@ from keras.layers import Flatten, Dense, Input, Conv2D, MaxPooling2D, GlobalAver
 from keras.engine.topology import get_source_inputs
 from keras import backend as K
 
-from sound import vggish_params2 as params
+import vggish_params as params
 
 
 # weight path
-WEIGHTS_PATH = '/mount/hudi/moe/moce/soundnet_moce/sound/weights/vggish_audioset_weights_without_fc2.h5'
-WEIGHTS_PATH_TOP = '/mount/hudi/moe/moce/soundnet_moce/sound/weights/vggish_audioset_weights.h5'
+WEIGHTS_PATH = '/home/brain/Documents/git/VGGish/vggish_audioset_weights_without_fc2.h5'
 
 def VGGish(load_weights=True, weights='audioset',
            input_tensor=None, input_shape=None,
