@@ -1,8 +1,8 @@
 from __future__ import division
 
 import numpy as np
-from sound import mel_features
-from sound import vggish_params
+import mel_features
+import vggish_params
 import resampy
 
 def preprocess_sound(data, sample_rate):
@@ -22,7 +22,6 @@ def preprocess_sound(data, sample_rate):
     bands, where the frame length is vggish_params.STFT_HOP_LENGTH_SECONDS.
   """
   # Convert to mono.
-
   if len(data.shape) > 1:
     data = np.mean(data, axis=1)
   # Resample to the rate assumed by VGGish.
