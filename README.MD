@@ -6,6 +6,8 @@ For more details, please visit the [slim version](https://github.com/tensorflow/
 
 ## Pretrained weights in Keras h5py:
 
+They should be downloaded into `weights` directory
+
 * [Model](https://drive.google.com/open?id=1mhqXZ8CANgHyepum7N4yrjiyIg6qaMe6) with the top fully connected layers
 
 * [Model](https://drive.google.com/open?id=16JrWEedwaZFVZYvn1woPKCuWx85Ghzkp) without the top fully connected layers

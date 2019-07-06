@@ -1,11 +1,5 @@
 from __future__ import division
 
-import sys
-
-sys.path.append('/home/hudi/anaconda2/lib/python2.7/site-packages/h5py')
-sys.path.append('/home/hudi/anaconda2/lib/python2.7/site-packages/Keras-2.0.6-py2.7.egg')
-
-
 import numpy as np
 from numpy.random import seed, randint
 from scipy.io import wavfile
@@ -19,7 +13,6 @@ from preprocess_sound import preprocess_sound
 
 
 def loading_data(files, sound_extractor):
-
 
     lines = linecache.getlines(files)
     sample_num = len(lines)
@@ -59,12 +52,12 @@ if __name__ == '__main__':
     sound_extractor = Model(input=sound_model.input, output=output_layer)
 
     # load training data
-    print "loading training data..."
+    print("loading training data...")
     training_file = '/mount/hudi/moe/soundnet/train.txt'
     training_data, training_label = loading_data(training_file, sound_extractor)
 
     # load testing data
-    print "loading testing data..."
+    print("loading testing data...")
     testing_file = '/mount/hudi/moe/soundnet/test.txt'
     testing_lines = linecache.getlines(testing_file)
     testing_data, testing_label = loading_data(testing_file, sound_extractor)
@@ -84,7 +77,7 @@ if __name__ == '__main__':
         pred_labels[ii] = ind
     scores = gt == pred_labels
     score = np.mean(scores)
-    print "accuracy: %f" % score
+    print("accuracy: %f" % score)
 
 
 
