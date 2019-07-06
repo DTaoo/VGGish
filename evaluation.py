@@ -1,47 +1,47 @@
 from __future__ import division
 
 import numpy as np
-from numpy.random import seed, randint
-from scipy.io import wavfile
 from sklearn import svm
-import linecache
+from sklearn.metrics import classification_report
 
 from keras.models import Model
 from keras.layers import GlobalAveragePooling2D
 from vggish import VGGish
-from preprocess_sound import preprocess_sound
+
+from dataset.dataset_utils import read_dataset_filenames, TRAIN_SET, TEST_SET, VAL_SET
+from vggish_inputs import wavfile_to_examples
 
 
-def loading_data(files, sound_extractor):
+def loading_data(files, labels, sound_extractor):
 
-    lines = linecache.getlines(files)
-    sample_num = len(lines)
-    seg_num = 60
-    seg_len = 5  # 5s
-    data = np.zeros((seg_num * sample_num, 496, 64, 1))
-    label = np.zeros((seg_num * sample_num,))
+    ret_data = []
+    ret_labels = []
+    batch_size=32
+    batch=[]
 
-    for i in range(len(lines)):
-        sound_file = '/mount/hudi/moe/sound_dataset/dcase/' + lines[i][:-7]
-        sr, wav_data = wavfile.read(sound_file)
+    for file_name, label in zip(files, labels):
+        wav_data = wavfile_to_examples(file_name)
+        if len(wav_data) != 1:
+            continue
+        ret_labels.append(label)
+        batch.append(wav_data)
+        if len(batch) == batch_size:
+            batch = np.concatenate(batch, axis=0)
+            features = sound_extractor.predict(np.expand_dims(batch,-1))
+            ret_data.append(features)
+            batch = []
 
-        length = sr * seg_len           # 5s segment
-        range_high = len(wav_data) - length
-        seed(1)  # for consistency and replication
-        random_start = randint(range_high, size=seg_num)
+    if len(batch) > 0:
+        batch = np.concatenate(batch, axis=0)
+        features = sound_extractor.predict(np.expand_dims(batch, -1))
+        ret_data.append(features)
 
-        for j in range(seg_num):
-            cur_wav = wav_data[random_start[j]:random_start[j] + length]
-            cur_wav = cur_wav / 32768.0
-            cur_spectro = preprocess_sound(cur_wav, sr)
-            cur_spectro = np.expand_dims(cur_spectro, 3)
-            data[i * seg_num + j, :, :, :] = cur_spectro
-            label[i * seg_num + j] = lines[i][-2]
+    ret_data = np.concatenate(ret_data, axis=0)
+    ret_labels = np.array(ret_labels)
 
-    data = sound_extractor.predict(data)
+    assert len(ret_labels) == len(ret_data)
 
-    return data, label
-
+    return ret_data, ret_labels
 
 if __name__ == '__main__':
 
@@ -52,32 +52,35 @@ if __name__ == '__main__':
     sound_extractor = Model(input=sound_model.input, output=output_layer)
 
     # load training data
+    dataset = read_dataset_filenames()
+
     print("loading training data...")
-    training_file = '/mount/hudi/moe/soundnet/train.txt'
-    training_data, training_label = loading_data(training_file, sound_extractor)
+    X_train, y_train = loading_data(*dataset[TRAIN_SET], sound_extractor)
 
     # load testing data
-    print("loading testing data...")
-    testing_file = '/mount/hudi/moe/soundnet/test.txt'
-    testing_lines = linecache.getlines(testing_file)
-    testing_data, testing_label = loading_data(testing_file, sound_extractor)
+    print("loading test data...")
+    X_test, y_test = loading_data(*dataset[TEST_SET], sound_extractor)
 
-    clf = svm.LinearSVC(C=0.01, dual=False)
-    clf.fit(training_data, training_label.ravel())
-    p_vals = clf.decision_function(testing_data)
+    # load testing data
+    print("loading validation data...")
+    X_val, y_val = loading_data(*dataset[VAL_SET], sound_extractor)
 
-    test_count = len(testing_lines)
-    pred_labels = np.zeros((test_count,))
-    gt = testing_label[0:6000:60]
-    p_vals = np.asarray(p_vals)
+    print('Training...')
 
-    for ii in range(test_count):
-        scores = np.mean(p_vals[ii * 60:(ii + 1) * 60, :], axis=0)
-        ind = np.argmax(scores)
-        pred_labels[ii] = ind
-    scores = gt == pred_labels
-    score = np.mean(scores)
-    print("accuracy: %f" % score)
+    clf = svm.LinearSVC()
+    clf.fit(X_train, y_train)
+
+    print('Report for training')
+    y_pred = clf.predict(X_train)
+    print(classification_report(y_train, y_pred))
+
+    print('Report for validation')
+    y_pred = clf.predict(X_val)
+    print(classification_report(y_val, y_pred))
+
+    print('Report for testing')
+    y_pred = clf.predict(X_test)
+    print(classification_report(y_test, y_pred))
 
 
 
